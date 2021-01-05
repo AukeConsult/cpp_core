@@ -1,1 +1,7 @@
-cpp/.vscode/launch.json
+vsproject
+**/.vs
+**/.vscode
+**/x64
+**/debug
+**/release
+

@@ -1,8 +1,7 @@
 #pragma once
 
 // special bytebuffer
-#include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <array>
 #include <vector>
 
