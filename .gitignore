@@ -1,0 +1,7 @@
+vsproject
+**/.vs
+**/.vscode
+**/x64
+**/debug
+**/release
+
