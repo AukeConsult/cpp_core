@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <atomic>
-#include <thread>
 
 #include "../general/System.hpp"
 #include "../general/Random.hpp"
@@ -15,6 +14,7 @@ protected:
 	atomic<long>	nextExcute;
 	atomic<long>	startExcute;
 
+
 	// watch frequency
 	long lastMeasure=0;
 	int counter=0;
@@ -23,10 +23,11 @@ protected:
 
 public:
 
-	int				frequency = 0;
 	atomic<bool>	isStarted;
-	atomic<bool>	isStopped = false;
-	atomic<bool>	doStop = false;
+	atomic<bool>	isStopped;
+	atomic<bool>	doStop;
+
+	int				frequency = 0;
 
 	long iD = effolkronium::random_static::get(0L, 100000L);
 
@@ -36,8 +37,10 @@ public:
 
 	Task(int frequency_) {
 		frequency = frequency_;
-		isStopped=true;
+		isStopped=false;
 		isStarted=false;
+		doStop=false;
+		startExcute = 0;
 		nextExcute = System::currentTimeMillis() + frequency - 1;
 		lastMeasure = System::currentTimeMillis();
 	

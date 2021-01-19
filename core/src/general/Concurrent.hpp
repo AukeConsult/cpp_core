@@ -39,7 +39,6 @@ public:
         data[k] = forward<Value2>(v);
     }
 
-    template<class Key>
     void remove(Key const& k) {
         unique_lock<decltype(mut)> lock(mut);
         data.erase(k);
