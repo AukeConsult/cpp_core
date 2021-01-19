@@ -12,8 +12,8 @@ class Task {
 
 protected:
 
-	atomic<long>	nextExcute = 0;
-	atomic<long>	startExcute = 0;
+	atomic<long>	nextExcute;
+	atomic<long>	startExcute;
 
 	// watch frequency
 	long lastMeasure=0;
@@ -24,11 +24,11 @@ protected:
 public:
 
 	int				frequency = 0;
-	atomic_bool		isStarted = false;
+	atomic<bool>	isStarted;
 	atomic<bool>	isStopped = false;
 	atomic<bool>	doStop = false;
 
-	long iD = effolkronium::random_static::get(0L, LONG_MAX);
+	long iD = effolkronium::random_static::get(0L, 100000L);
 
 	bool isLongRunning() {
 		return startExcute > 0 && System::currentTimeMillis() - startExcute > 10000;
@@ -45,6 +45,7 @@ public:
 	Task(string taskName_, int frequency_) : Task(frequency_) {
 		taskName = taskName_;
 	}
+	virtual ~Task(){};
 
 	void start() {
 		if (isStopped) {

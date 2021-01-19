@@ -1,9 +1,11 @@
+#pragma once
+
 #include <iostream>
 #include <string>
-//#include <mutex>
-//#include <vector>
+#include <mutex>
+#include <vector>
 #include <algorithm>
-//#include <unordered_map>
+#include <unordered_map>
 
 #include <chrono>
 #include <random>
@@ -23,6 +25,7 @@ class testTask : public Task {
 	// Inherited via Task
 public:
 	testTask(int f) : Task(f) {};
+	~testTask(){};
 	virtual void onStart() override {}
 	virtual void onExecute() override {
 		cout << iD << endl;

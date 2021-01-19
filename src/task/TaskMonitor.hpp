@@ -4,12 +4,14 @@
 #include <atomic>
 #include <vector>
 #include <chrono>
+#include <condition_variable>
 #include "../general/Executor.hpp"
 #include "../general/Concurrent.hpp"
 #include "../general/System.hpp"
 #include "Task.hpp"
 
 using namespace std;
+
 
 class TaskMonitor : Runnable {
 	
@@ -40,6 +42,8 @@ public:
 		monitorName = monitorName_;
 		isRunning=false;
 	}
+	~TaskMonitor() {}
+
 	void execute(Task* task) {
 		tasklist.put(task->iD, make_shared<Task>(task));
 		task->start();
@@ -60,7 +64,7 @@ public:
 		}
 	}
 
-	void run() {
+	void run() override {
 	
 		vector<long> tasklistStopped;
 		
@@ -83,7 +87,7 @@ public:
 					tasklistStopped.push_back(task->iD);
 				}
 				else if (task->schedule(executiontime)) {
-					executelist.add(make_shared<Task>(task));
+					executelist.push(make_shared<Task>(task));
 				}
 			}
 			if (tasklistStopped.size() > 0) {
@@ -103,7 +107,7 @@ public:
 				long waittime = (executiontime - System::currentTimeMillis() + frequency);
 				if (waittime > 0 && executelist.size() == 0) {
 					unique_lock<mutex> lk(mtx);
-					cv.wait_for(lk, waittime *1ms);
+					cv.wait_for(lk, chrono::duration<long, chrono::milliseconds>(waittime));
 				}
 			}
 		}

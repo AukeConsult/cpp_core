@@ -1,7 +1,7 @@
-vsproject
+**/.settings
 **/.vs
-**/.vscode
 **/x64
 **/debug
 **/release
 
+/Debug/
