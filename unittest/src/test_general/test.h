@@ -8,5 +8,6 @@
  */
 
 #include "test_queue.hpp"
+#include "test_typeutil.hpp"
 
 

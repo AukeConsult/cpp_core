@@ -1,8 +1,8 @@
 #pragma once
 
-#include <iostream>
 #include "gtest/gtest.h"
-#include "../general/concurrent.hpp"
+#include <exception>
+#include "general/concurrent.hpp"
 
 /*
  * TestTask.h
@@ -11,24 +11,25 @@
  *      Author: leif
  */
 
+
 class ConcurrentQueueTest : public ::testing::Test {
 
-public:
+protected:
 
 	ConcurrentQueue<int> q1;
 	ConcurrentQueue<int> q2;
 
-	ConcurrentQueueTest() {
+	virtual void SetUp() {
+
 		q1.push(1);
 		q2.push(1);
 		q2.push(2);
+
 	}
 
 };
 
 TEST_F(ConcurrentQueueTest, FirstTest) {
-
-	cout << "first" << endl;
 
 	ASSERT_EQ((int)q1.size(),1);
 	ASSERT_EQ((int)q2.size(),2);
@@ -41,7 +42,11 @@ TEST_F(ConcurrentQueueTest, FirstTest) {
 	ASSERT_EQ((int)q2.pop(),2);
 	ASSERT_EQ((int)q2.size(),0);
 
-	q2.pop();
+	try {
+		q2.pop();
+		FAIL() << "should give exception";
+	} catch (SysException & e) {
+	}
 
 }
 

@@ -4,21 +4,23 @@
 #include <mutex>
 #include <vector>
 #include <queue>
+#include <exception>
 #include <unordered_map>
 
 using namespace std;
 
-
-class Exception: public std::runtime_error {
+class SysException : public exception {
+	string message;
 public:
 	void* object;
-    typedef std::runtime_error super;
-    Exception(const std::string& what_arg):
-        super(what_arg)
-    {
-    	object = this;
+	SysException() : object(this) {};
+	SysException(const string& what_arg) : message(what_arg), object(this) {}
+    virtual string what() throw() {
+      return message;
     }
 };
+
+
 
 template<class Key, class Value>
 class ConcurrentHashMap
@@ -43,7 +45,7 @@ public:
     Value get(Key const& k) {
         unique_lock<decltype(mut)> lock(mut);
         if(data.empty()) {
-        	throw Exception("Collection empty");
+        	throw SysException("Collection empty");
         }
         return data[k]; // Return a copy.
     }
@@ -112,7 +114,7 @@ public:
     Value pop() {
         unique_lock<decltype(mut)> lock(mut);
         if(data.empty()) {
-        	throw Exception("Collection empty");
+        	throw SysException("Collection empty");
         }
         Value v = data.front();
         data.pop();
@@ -135,3 +137,4 @@ public:
     }
 
 };
+
