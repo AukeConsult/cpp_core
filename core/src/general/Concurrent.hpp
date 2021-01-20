@@ -8,6 +8,18 @@
 
 using namespace std;
 
+
+class Exception: public std::runtime_error {
+public:
+	void* object;
+    typedef std::runtime_error super;
+    Exception(const std::string& what_arg):
+        super(what_arg)
+    {
+    	object = this;
+    }
+};
+
 template<class Key, class Value>
 class ConcurrentHashMap
 {
@@ -30,6 +42,9 @@ public:
     
     Value get(Key const& k) {
         unique_lock<decltype(mut)> lock(mut);
+        if(data.empty()) {
+        	throw Exception("Collection empty");
+        }
         return data[k]; // Return a copy.
     }
 
@@ -70,6 +85,8 @@ class ConcurrentQueue
 
 public:
 
+    ConcurrentQueue<Value> () {};
+
     size_t size() {
         unique_lock<decltype(mut)> lock(mut);
         return data.size();
@@ -94,6 +111,9 @@ public:
 
     Value pop() {
         unique_lock<decltype(mut)> lock(mut);
+        if(data.empty()) {
+        	throw Exception("Collection empty");
+        }
         Value v = data.front();
         data.pop();
         return v;
@@ -101,13 +121,8 @@ public:
 
     void push(const Value& v) {
         unique_lock<decltype(mut)> lock(mut);
-        data.push(v);
+        data.emplace(v);
     }
-
-    //void push(const Value&& v) {
-    //    unique_lock<decltype(mut)> lock(mut);
-    //    data.push(forward<Value>(v));
-    //}
 
     void emplace(const Value& v) {
         unique_lock<decltype(mut)> lock(mut);

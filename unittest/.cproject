@@ -29,6 +29,7 @@
 								<option id="gnu.cpp.compiler.mingw.exe.debug.option.debugging.level.682671087" name="Debug Level" superClass="gnu.cpp.compiler.mingw.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1254660851" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/gmock/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/src/general}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.1283447527" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 " valueType="string"/>
 								<option id="gnu.cpp.compiler.option.dialect.std.1640305243" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>
