@@ -35,13 +35,48 @@ namespace ByteUtil {
 	}
 
 	vector<vector<unsigned char>> splitBytes( vector<unsigned char> val, int len )  {
-
 		vector<vector<unsigned char>> v;
 		for(size_t i=0;i<val.size();i+=len) {
-			vector<unsigned char> x;
-			x.insert(x.end(),val.begin() + i,val.begin() + i + len - 1);
-			v.push_back(x);
+			vector<unsigned char> sub;
+			sub.insert(sub.end(),val.begin() + i,val.begin() + i + len);
+			v.push_back(sub);
 		}
+		return v;
+	}
+
+
+	vector<unsigned char> mergeDynamicBytes( initializer_list<vector<unsigned char>> list )  {
+		vector<unsigned char> v;
+		for( vector<unsigned char> vin : list ) {
+			int len = vin.size();
+			v.push_back((unsigned char)len & 0xff);
+			v.push_back((unsigned char)(len >> 8) & 0xff);
+			v.push_back((unsigned char)(len >> 16) & 0xff);
+			v.push_back((unsigned char)(len >> 24) & 0xff);
+			v.insert(v.end(),vin.begin(),vin.end());
+		}
+		return v;
+	}
+
+
+	vector<vector<unsigned char>> splitDynamicBytes( vector<unsigned char> val )  {
+		vector<vector<unsigned char>> v;
+
+		size_t pos=0;
+		while(pos < val.size()) {
+
+	        int len = val[pos++] & 0xff;
+	        len = len + ((val[pos++] & 0xff) << 8);
+	        len = len + ((val[pos++] & 0xff) << 16);
+	        len = len + ((val[pos++] & 0xff) << 24);
+
+	        vector<unsigned char> sub;
+			sub.insert(sub.end(),val.begin() + pos,val.begin() + pos + len);
+			v.push_back(sub);
+			pos += len;
+
+		}
+
 		return v;
 	}
 
