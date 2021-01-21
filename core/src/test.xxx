@@ -8,12 +8,12 @@
 #include <chrono>
 #include <random>
 #include <thread>
+
+#include "general/Byteutil.hpp"
 #include "general/Random.hpp"
 #include "general/Concurrent.hpp"
-
-//#include "task/ServiceMonitor.hpp"
 #include "task/Task.hpp"
-//#include "task/TaskMonitor.hpp"
+#include "task/TaskMonitor.hpp"
 
 using namespace std;
 
@@ -33,9 +33,13 @@ public:
 
 int main(int argc, char **argv) {
 
-	ConcurrentQueue<int> test;
+	//ConcurrentQueue<int> test;
 
-	cout << "Hello world" << endl;
+	vector<unsigned char> bytes = ByteUtil::to_bytes(100L);
+
+	cout << bytes.size() << endl;
+
+	//long val2 = ByteUtil::from_bytes(bytes);
 
 	//test.push(21);
 	//test.push(22);
@@ -47,17 +51,17 @@ int main(int argc, char **argv) {
 	//cout << test.pop() << endl;
 	//cout << test.pop() << endl;
 
-	ConcurrentQueue<testTask*> executelist;
-
-	executelist.push(new testTask(1));
-	executelist.push(new testTask(2));
-	executelist.push(new testTask(3));
-	executelist.push(new testTask(4));
-
-	while (!executelist.empty())
-	{
-		std::cout << executelist.pop()->frequency << '\n';
-	}
+//	ConcurrentQueue<testTask*> executelist;
+//
+//	executelist.push(new testTask(1));
+//	executelist.push(new testTask(2));
+//	executelist.push(new testTask(3));
+//	executelist.push(new testTask(4));
+//
+//	while (!executelist.empty())
+//	{
+//		std::cout << executelist.pop()->frequency << '\n';
+//	}
 
 
 	cout << "Hello world end" << endl;

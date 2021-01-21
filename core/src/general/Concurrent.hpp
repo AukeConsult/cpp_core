@@ -50,10 +50,15 @@ public:
         return data[k]; // Return a copy.
     }
 
-    template<class Value2>
-    void put(Key const& k, Value2&& v) {
-        unique_lock<decltype(mut)> lock(mut);
-        data[k] = forward<Value2>(v);
+//    template<class Value2>
+//    void put(Key const& k, Value2&& v) {
+//        unique_lock<decltype(mut)> lock(mut);
+//        data[k] = forward<Value2>(v);
+//    }
+
+    void put(Key const& k, Value& v) {
+    	unique_lock<decltype(mut)> lock(mut);
+        data.insert({k,v});
     }
 
     void remove(Key const& k) {

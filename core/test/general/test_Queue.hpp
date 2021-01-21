@@ -1,8 +1,8 @@
 #pragma once
 
-#include "gtest/gtest.h"
 #include <exception>
-#include "general/concurrent.hpp"
+#include "gtest/gtest.h"
+#include "../../src/general/Concurrent.hpp"
 
 /*
  * TestTask.h
@@ -10,7 +10,6 @@
  *  Created on: Jan 19, 2021
  *      Author: leif
  */
-
 
 class ConcurrentQueueTest : public ::testing::Test {
 

@@ -6,7 +6,7 @@ using namespace std;
 
 class Runnable {
 public:
-    virtual void run() const = 0;
+    virtual void run();
     virtual ~Runnable() {};
 }
 ;

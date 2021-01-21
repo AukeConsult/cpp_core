@@ -18,9 +18,9 @@ class TaskMonitor : Runnable {
 private: 
 
 	ExecutorService* executor;
-	ConcurrentHashMap<long, shared_ptr<Task>> tasklist;
+	ConcurrentHashMap<long, Task*> tasklist;
 	ConcurrentQueue<Task*> executelist;
-	atomic<long> sinceStarted = 0;
+	atomic<long> sinceStarted;
 
 	mutex mtx;
 	condition_variable cv;
@@ -30,7 +30,7 @@ public:
 	string monitorName;
 
 	long frequency = 1000; // 1 second default
-	atomic<bool> isRunning = true;
+	atomic<bool> isRunning;
 
 	vector<Task*> getRunningTasks() {
 		return tasklist.values();
@@ -45,7 +45,7 @@ public:
 	~TaskMonitor() {}
 
 	void execute(Task* task) {
-		tasklist.put(task->iD, make_shared<Task>(task));
+		tasklist.put(task->iD, task);
 		task->start();
 		addExcute(task);
 	}
@@ -107,7 +107,7 @@ public:
 				long waittime = (executiontime - System::currentTimeMillis() + frequency);
 				if (waittime > 0 && executelist.size() == 0) {
 					unique_lock<mutex> lk(mtx);
-					cv.wait_for(lk, chrono::duration<long, chrono::milliseconds>(waittime));
+					cv.wait_for(lk, chrono::milliseconds(waittime));
 				}
 			}
 		}
