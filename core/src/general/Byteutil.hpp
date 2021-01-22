@@ -10,7 +10,7 @@ using namespace std;
 
 namespace ByteUtil {
 
-	using byte = unsigned char ;
+	using byte = unsigned char;
 
 	template< typename T >vector<byte>  to_bytes( const T& object ) {
 		vector<byte> bytes ;
@@ -21,46 +21,61 @@ namespace ByteUtil {
 	}
 
 	template< typename T >
-	void from_bytes(const vector<unsigned char>& bytes, const T& val) {
-		//static_assert( std::is_trivially_copyable<T>::bytes, "not a TriviallyCopyable type" ) ;
+	void from_bytes(const vector<byte>& bytes, const T& val) {
 		memcpy((char*)&val,&bytes[0],sizeof(T));
 	}
+	short getShort(const vector<byte>& bytes) {
+		short val;
+		int len = bytes.size()<2?bytes.size():2;
+		memcpy((void*)&val,&bytes[0],len);
+		return val;
+	}
+	int getInt(const vector<byte>& bytes) {
+		int val;
+		int len = bytes.size()<4?bytes.size():4;
+		memcpy((void*)&val,&bytes[0],len);
+		return val;
+	}
+	long long getLong(const vector<byte>& bytes) {
+		unsigned long val=0L;
+		int len = bytes.size()<8?bytes.size():8;
+		memcpy((void*)&val,&bytes[0],len);
+		return val;
+	}
 
-	vector<unsigned char> mergeBytes( initializer_list<vector<unsigned char>> list )  {
-		vector<unsigned char> v;
-		for( vector<unsigned char> vin : list ) {
+	vector<byte> mergeBytes( initializer_list<vector<byte>> list )  {
+		vector<byte> v;
+		for( vector<byte> vin : list ) {
 			v.insert(v.end(),vin.begin(),vin.end());
 		}
 		return v;
 	}
 
-	vector<vector<unsigned char>> splitBytes( vector<unsigned char> val, int len )  {
-		vector<vector<unsigned char>> v;
+	vector<vector<byte>> splitBytes( vector<byte> val, int len )  {
+		vector<vector<byte>> v;
 		for(size_t i=0;i<val.size();i+=len) {
-			vector<unsigned char> sub;
+			vector<byte> sub;
 			sub.insert(sub.end(),val.begin() + i,val.begin() + i + len);
 			v.push_back(sub);
 		}
 		return v;
 	}
 
-
-	vector<unsigned char> mergeDynamicBytes( initializer_list<vector<unsigned char>> list )  {
-		vector<unsigned char> v;
-		for( vector<unsigned char> vin : list ) {
+	vector<byte> mergeDynamicBytes( initializer_list<vector<byte>> list )  {
+		vector<byte> v;
+		for( vector<byte> vin : list ) {
 			int len = vin.size();
-			v.push_back((unsigned char)len & 0xff);
-			v.push_back((unsigned char)(len >> 8) & 0xff);
-			v.push_back((unsigned char)(len >> 16) & 0xff);
-			v.push_back((unsigned char)(len >> 24) & 0xff);
+			v.push_back((byte)len & 0xff);
+			v.push_back((byte)(len >> 8) & 0xff);
+			v.push_back((byte)(len >> 16) & 0xff);
+			v.push_back((byte)(len >> 24) & 0xff);
 			v.insert(v.end(),vin.begin(),vin.end());
 		}
 		return v;
 	}
 
-
-	vector<vector<unsigned char>> splitDynamicBytes( vector<unsigned char> val )  {
-		vector<vector<unsigned char>> v;
+	vector<vector<byte>> splitDynamicBytes( vector<byte> val )  {
+		vector<vector<byte>> v;
 
 		size_t pos=0;
 		while(pos < val.size()) {
@@ -70,7 +85,7 @@ namespace ByteUtil {
 	        len = len + ((val[pos++] & 0xff) << 16);
 	        len = len + ((val[pos++] & 0xff) << 24);
 
-	        vector<unsigned char> sub;
+	        vector<byte> sub;
 			sub.insert(sub.end(),val.begin() + pos,val.begin() + pos + len);
 			v.push_back(sub);
 			pos += len;
