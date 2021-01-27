@@ -19,9 +19,9 @@ protected:
 	atomic<long long>	nextExcute;
 
 	long long	lastMeasure=0;
-	int 	counter=0;
+	int 		counter=0;
 
-	string			taskName;
+	string		taskName;
 
 public:
 
