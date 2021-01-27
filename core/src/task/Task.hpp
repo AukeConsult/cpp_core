@@ -48,13 +48,13 @@ public:
 			isStopped(false),
 			doStop(false)
 	{
-		cout << "task constructed " << id <<endl;
+		//cout << "task constructed " << id <<endl;
 	}
 	
 
 
 	virtual ~Task() {
-		cout << "task destructed " << id <<endl;
+		cout << "task destructed " << id << " " << taskName << endl;
 	};
 
 	void start() {
@@ -96,7 +96,7 @@ public:
 		nextExcute= System::currentTimeMillis() + time;
 	}
 	bool schedule(long time) {
-		if ((time - nextExcute) >= 0) {
+		if (!doStop && isRunning() && (time - nextExcute) >= 0) {
 			return true;
 		}
 		return false;

@@ -16,10 +16,10 @@ const int STOPPED = 1;
 
 using namespace std;
 
-class Task {
+class ThreadPoolTask {
 public:
-	Task(void (*fn_ptr)(void*), void* arg) : m_fn_ptr(fn_ptr), m_arg(arg) {}
-	~Task() {}
+	ThreadPoolTask(void (*fn_ptr)(void*), void* arg) : m_fn_ptr(fn_ptr), m_arg(arg) {}
+	~ThreadPoolTask() {}
 	void operator()() {
 		(*m_fn_ptr)(m_arg);
 		if (m_arg != NULL) {
@@ -96,7 +96,7 @@ public:
 	}
 
 	void* execute_thread() {
-		Task* task = NULL;
+		ThreadPoolTask* task = NULL;
 		cout << "Starting thread " << pthread_self() << endl;
 		while(true) {
 			// Try to pick a task
@@ -137,7 +137,7 @@ public:
 		}
 		return NULL;
 	}
-	int add_task(Task* task) {
+	int add_task(ThreadPoolTask* task) {
 		m_task_mutex.lock();
 		// TODO: put a limit on how many tasks can be added at most
 		m_tasks.push_back(task);
@@ -151,7 +151,7 @@ private:
 	Mutex m_task_mutex;
 	CondVar m_task_cond_var;
 	std::vector<pthread_t> m_threads; // storage for threads
-	std::deque<Task*> m_tasks;
+	std::deque<ThreadPoolTask*> m_tasks;
 	volatile int m_pool_state;
 };
 

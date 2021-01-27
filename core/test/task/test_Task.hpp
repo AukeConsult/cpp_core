@@ -15,6 +15,9 @@
 #include "../../src/task/TaskMonitor.hpp"
 
 class TaskTest: public Task {
+
+private:
+	int cnt=0;
 public:
 
 	TaskTest() : Task() {};
@@ -23,11 +26,12 @@ public:
 		cout << "start " << id << endl;
 	};
 	void onExecute() {
+		cnt++;
 		this_thread::sleep_for(10ms);
 		//cout << id << taskName << endl;
 	};
 	void onStop() {
-		cout << "stop " << id << taskName << endl;
+		cout << "stop " << id << " " << taskName << " cnt " << cnt << endl;
 	}
 };
 
@@ -70,7 +74,7 @@ TEST(TaskTest, startStopp) {
 	pingMonitor->execute(task4);
 
 	long long start = System::currentTimeMillis();
-	while((System::currentTimeMillis() - start) < 10000) {
+	while((System::currentTimeMillis() - start) < 5000) {
 		cout << "wait... " << System::currentTimeMillis() - start << endl;
 		this_thread::sleep_for(3s);
 		task3->stop();

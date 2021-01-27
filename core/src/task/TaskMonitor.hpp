@@ -45,8 +45,13 @@ public:
 	{}
 
 	~TaskMonitor() {
-		tasklist.clear();
+		for (shared_ptr<Task> task : tasklist.values()) {
+			task->stop();
+		}
+		cv.notify_all();
+		pthread_join(taskThread, NULL);
 		cout << "TaskMonitor destroyed" << endl;
+		//pthread_exit (NULL);
 	}
 
 	void execute(Task* task) {
@@ -91,16 +96,16 @@ public:
 						task->execute(executiontime);
 					//sinceStarted = System::currentTimeMillis();
 				}
-
-				// check and reschedule tasks
 				for (shared_ptr<Task> task : tasklist.values()) {
 					if (task->isStarted && task->isStopped) {
 						tasklistStopped.push_back(task->iD);
-					}
-					else if (task->schedule(executiontime)) {
+					} else if (task->schedule(executiontime)) {
+						executelist.push(task.get());
+					} else if (task->doStop) {
 						executelist.push(task.get());
 					}
 				}
+				// check and reschedule tasks
 				if (tasklistStopped.size() > 0) {
 					for (long taskid : tasklistStopped) {
 						tasklist.remove(taskid);
@@ -108,9 +113,7 @@ public:
 					tasklistStopped.clear();
 				}
 				if (tasklist.size() == 0 && executelist.size() == 0) {
-					if (System::currentTimeMillis() - sinceStarted > (frequency * 2)) {
-						isRunning=false;
-					}
+					isRunning=false;
 				}
 				// wait if execution list is empty
 				if (isRunning && executelist.size() == 0) {
