@@ -7,24 +7,19 @@
 class ServiceMonitor {
 
 	string name;
-	ExecutorService threadpool;
 
 public:
 
 	TaskMonitor* pingMonitor;
-	
-	ServiceMonitor(string name_) {
-		name = name_;
+	ServiceMonitor(string name) : name(name) {
 		start();
 	}
 	~ServiceMonitor() {
 		stop();
 	}
-
 	void start() {
-		pingMonitor = new TaskMonitor(&threadpool, 1000, "pingMonitor " + name);
+		pingMonitor = new TaskMonitor(1000, "pingMonitor " + name);
 	}
-
 	void stop() {
 		pingMonitor->stopMonitor();
 		delete pingMonitor;

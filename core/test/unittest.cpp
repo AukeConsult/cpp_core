@@ -8,7 +8,9 @@
 
 #include <iostream>
 #include "gtest/gtest.h"
-#include "general/test.h"
+
+//#include "general/test.h"
+#include "task/test.h"
 
 using namespace std;
 

@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <atomic>
+#include <chrono>
+#include <thread>
 
 #include "../general/System.hpp"
 #include "../general/Random.hpp"
@@ -11,59 +13,65 @@ class Task {
 
 protected:
 
-	atomic<long>	nextExcute;
-	atomic<long>	startExcute;
+	int id = effolkronium::random_static::get(0,999999);
 
+	atomic<long long>	startExcute;
+	atomic<long long>	nextExcute;
 
-	// watch frequency
-	long lastMeasure=0;
-	int counter=0;
+	long long	lastMeasure=0;
+	int 	counter=0;
 
 	string			taskName;
 
 public:
 
+	int				frequency=0;
 	atomic<bool>	isStarted;
 	atomic<bool>	isStopped;
 	atomic<bool>	doStop;
 
-	int				frequency = 0;
-
-	long iD = effolkronium::random_static::get(0L, 100000L);
+	long iD = effolkronium::random_static::get(0, 1000000);
 
 	bool isLongRunning() {
 		return startExcute > 0 && System::currentTimeMillis() - startExcute > 10000;
 	}
 
-	Task(int frequency_) {
-		frequency = frequency_;
-		isStopped=false;
-		isStarted=false;
-		doStop=false;
-		startExcute = 0;
-		nextExcute = System::currentTimeMillis() + frequency - 1;
-		lastMeasure = System::currentTimeMillis();
+	Task() : Task(0,"") {};
+
+	Task(int frequency, string taskName) :
+			startExcute(0),
+			nextExcute(System::currentTimeMillis() + frequency - 1),
+			lastMeasure(System::currentTimeMillis()),
+			taskName (taskName),
+			frequency (frequency),
+			isStarted(false),
+			isStopped(false),
+			doStop(false)
+	{
+		cout << "task constructed " << id <<endl;
+	}
 	
-	}
-	Task(string taskName_, int frequency_) : Task(frequency_) {
-		taskName = taskName_;
-	}
-	virtual ~Task(){};
+
+
+	virtual ~Task() {
+		cout << "task destructed " << id <<endl;
+	};
 
 	void start() {
 		if (isStopped) {
-			doStop=false;
-			isStopped=false;
-			isStarted=false;
-			nextExcute= System::currentTimeMillis() + frequency - 1;
+			doStop =false;
+			isStopped = false;
+			isStarted = false;
+			nextExcute = System::currentTimeMillis() + frequency - 1;
 		}
-	
 	}
+	
 	void stop() {
 		if (!isStopped) {
 			doStop=true;
 		}
 	}
+
 	// force stopping
 	// don't use monitor execution to fire stop
 	void forceStop() {
@@ -77,7 +85,7 @@ public:
 	void waitStopped() {
 		int wait = 0;
 		while (wait < frequency && doStop) {
-			std::this_thread::sleep_for(std::chrono::microseconds(wait));
+			this_thread::sleep_for(std::chrono::microseconds(wait));
 			wait += 10;
 		}
 	}
@@ -129,16 +137,14 @@ public:
 
 	virtual void onStart() = 0;
 	virtual void onExecute() = 0;
-	virtual void onStop()  = 0;
+	virtual void onStop() = 0;
 
 }
 ;
 
 class TaskExecute : public Task {
 public: 
-	TaskExecute(int frequency_) : Task(frequency_) {}
-	TaskExecute(string taskName, int frequency_) : Task(taskName, frequency_) {}
-	void onStart() {};
-	void onStop() {};
+	void onStart() override {};
+	void onStop() override {};
 }
 ;

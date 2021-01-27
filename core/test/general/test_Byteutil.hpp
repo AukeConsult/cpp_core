@@ -87,16 +87,17 @@ TEST(ByteUtilTest, MergeTest) {
 	ASSERT_EQ((int)bytes_m.size(),16);
 
 	cout << "split bytes" << endl;
-	vector<vector<byte>> bytesarr = ByteUtil::splitBytes(bytes_m,4);
-	ASSERT_EQ((int)bytesarr.size(),4);
+	vector<vector<byte>> bytes_arr = ByteUtil::splitBytes(bytes_m,4);
+	ASSERT_EQ((int)bytes_arr.size(),4);
 	//cout << bytesarr.size() << endl;
-	for(vector<byte> bytes : bytesarr) {
+	for(vector<byte> bytes : bytes_arr) {
 		for(byte byte : bytes) {
 			printf("%02x ", byte);
 		}
 	    long val;
 		ByteUtil::from_bytes(bytes,val);
-		ASSERT_EQ(val,100L);
+		ASSERT_EQ(val,100);
+		cout << endl;
 	}
 
 	cout << "merge dynamic" << endl;
@@ -113,19 +114,17 @@ TEST(ByteUtilTest, MergeTest) {
 	}
     cout << endl;
 	cout << bytes_dyn.size() << endl;
-	ASSERT_EQ(((vector<byte>)bytes_dyn[2]).size(),11);
-
 
 	cout << "split dynamic" << endl;
 
 	vector<vector<byte>> bytes_sub = ByteUtil::splitDynamicBytes(bytes_dyn);
-	cout << bytesarr.size() << endl;
 	for(vector<byte> bytes : bytes_sub) {
-	    cout << "var: ";
 		for(byte byte : bytes) {
 			printf("%02x ", byte);
 		}
 		cout << endl;
 	}
+
+	ASSERT_EQ(bytes_sub[2].size(),11);
 
 }
