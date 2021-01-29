@@ -1,48 +1,24 @@
 #pragma once
 
-#include <pthread.h>
-#include <unistd.h>
+#include <thread>
+#include <atomic>
+#include <chrono>
 #include <deque>
 #include <iostream>
 #include <vector>
-#include <errno.h>
+#include <algorithm>
 #include <string>
+#include <condition_variable>
 
-#include "CondVar_Mutex.hpp"
-
-#include <atomic>
-//#include <thread>
-
-
-const int DEFAULT_POOL_SIZE = 10;
-const int STARTED = 0;
-const int STOPPED = 1;
+const int MAX_POOL_SIZE = 10;
+const int MIN_POOL_SIZE = 2;
+const int TREAD_LIVE=2000;
+const int WAIT_TIME=1000;
 
 using namespace std;
+using namespace std::chrono;
 
 class ThreadPool;
-
-class ThreadWork {
-
-public:
-
-	pthread_t 		self=0;
-	ThreadPool * 	pool=nullptr;
-	atomic<bool> 	executing, started, stopped;
-
-	ThreadWork() :
-			executing(false),
-			started(false),
-			stopped(false)
-			{};
-
-	~ThreadWork() {};
-
-	void* execute_thread();
-
-private:
-
-};
 
 class ThreadPoolTask {
 public:
@@ -62,13 +38,31 @@ private:
 	void* m_arg;
 };
 
+class ThreadWorker {
+public:
+
+	thread			self;
+	ThreadPool * 	pool=nullptr;
+	ThreadWorker() :
+			executing(false),
+			running(true),
+			m_last_execute(0)
+	{}
+	~ThreadWorker() {};
+	void* execute_thread(ThreadWorker * worker);
+	atomic<bool> 	executing, running;
+
+private:
+	long long 		m_last_execute;
+	long long now() {
+		return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	}
+};
+
 
 extern "C" void* start_thread(void* This){
-//		ThreadPool* tp = (ThreadPool*) This;
-//		tp->execute_thread();
-
-	ThreadWork* tp = (ThreadWork*) This;
-	tp->execute_thread();
+	ThreadWorker* tw = (ThreadWorker*) This;
+	tw->execute_thread(tw);
 	return NULL;
 }
 
@@ -76,131 +70,159 @@ class ThreadPool {
 public:
 
 	atomic<bool> stopped;
-	ThreadPool() : m_pool_size(DEFAULT_POOL_SIZE) {
+
+	ThreadPool() : stopped(false), m_pool_size(MAX_POOL_SIZE) {
 		cout << "Constructed ThreadPool of size " << m_pool_size << endl;
 	}
-	ThreadPool(int pool_size) : m_pool_size(pool_size) {
+	ThreadPool(int pool_size) : stopped(false), m_pool_size(pool_size) {
 		cout << "Constructed ThreadPool of size " << m_pool_size << endl;
 	}
 	~ThreadPool() {
-		if (!stopped) {
-			destroy_threadpool();
+		cout << "signal to all threads..." << endl;
+		stopped = true;
+		m_wait_cond.notify_all();
+		for (auto tr : m_threads) {
+		    tr->self.join();
+			m_wait_cond.notify_all();
 		}
-	}
-	int initialize_threadpool() {
-		// TODO: COnsider lazy loading threads instead of creating all at once
-		stopped=true;
-		for (int i = 0; i < m_pool_size; i++) {
-			//pthread_t tid;
-			ThreadWork worker;
-			worker.pool=this;
-			int ret = pthread_create(&worker.self, NULL, start_thread, (void*) &worker);
-			if (ret != 0) {
-				cerr << "pthread_create() failed: " << ret << endl;
-				return -1;
-			}
-			cout << "Thread started: " << worker.self << endl;
-			m_threads.push_back(worker);
-		}
-		//cout << m_pool_size << " threads created by the thread pool" << endl;
-		return 0;
+		cout << "threads exited from the thread pool" << endl;
 	}
 
-	void lock() {m_task_mutex.lock();}
-	void unlock() {m_task_mutex.unlock();}
-	void wait() {
-		m_task_mutex.lock();
-		while (!stopped && (m_tasks.empty())) {
-			m_task_cond_var.wait(m_task_mutex.get_mutex_ptr());
+	void initialize_thread() {
+		try {
+
+			ThreadWorker* worker = new ThreadWorker();
+			m_threads.push_back(worker);
+
+			worker->pool=this;
+			worker->self = thread(start_thread, worker);
+			//cout << "Thread started" << worker->self.get_id() << endl;
+
+		} catch (exception& ex) {
+			cerr << ex.what() << endl;
 		}
-		m_task_mutex.unlock();
+	}
+
+	bool canStop () {
+		unique_lock<mutex> lock(m_lock);
+        m_threads.erase(
+        		remove_if(m_threads.begin(),
+        				m_threads.end(),
+						[](const ThreadWorker* tw) { return !tw->running;}
+        		)
+				, m_threads.end()
+		);
+        return m_threads.size()>MIN_POOL_SIZE;
+	}
+
+	void wait() {
+        unique_lock<mutex> lock(m_lock);
+		while (!stopped && (m_tasks.empty())) {
+		    m_wait_cond.wait(lock);
+		}
+	}
+
+	void wait_for(int time) {
+        unique_lock<mutex> lock(m_lock);
+		if (!stopped) {
+		    m_wait_cond.wait_for(lock,time*1ms);
+		}
+	}
+
+	bool hasTasks () {
+        unique_lock<mutex> lock(m_lock);
+		bool ret = !m_tasks.empty() && !stopped;
+		return ret;
 	}
 
 	ThreadPoolTask* popTask() {
-		m_task_mutex.lock();
-		ThreadPoolTask* task;
+        unique_lock<mutex> lock(m_lock);
 		if(m_tasks.size()>0) {
-			task = m_tasks.front();
+			ThreadPoolTask* task = m_tasks.front();
 			m_tasks.pop_front();
-			//cout << "Unlocking: " << pthread_self() << endl;
+			return task;
 		}
-		m_task_mutex.unlock();
-		return task;
+		return nullptr;
 	}
 
-	int destroy_threadpool() {
-		// Note: this is not for synchronization, its for thread communication!
-		// destroy_threadpool() will only be called from the main thread, yet
-		// the modified m_pool_state may not show up to other threads until its
-		// modified in a lock!
-		stopped = true;
-
-		cout << "Broadcasting STOP signal to all threads..." << endl;
-		m_task_cond_var.broadcast(); // notify all threads we are shutting down
-
-		for (int i = 0; i < m_pool_size; i++) {
-			int ret = pthread_join(m_threads[i].self, NULL);
-			if(ret!=0) {
-				cerr << "pthread_join() returned " << ret << ": " << strerror(errno) << endl;
-			}
-			m_task_cond_var.broadcast(); // try waking up a bunch of threads that are still waiting
+	void add_task(ThreadPoolTask* task) {
+        unique_lock<mutex> lock(m_lock);
+        m_threads.erase(
+        		remove_if(m_threads.begin(),
+        				m_threads.end(),
+						[](const ThreadWorker* tw) { return !tw->running;}
+        		)
+				, m_threads.end()
+		);
+        for (int i = m_threads.size(); i < 2; i++) {
+			initialize_thread();
 		}
-		//cout << m_pool_size << " threads exited from the thread pool" << endl;
-		return 0;
-	}
 
-	int add_task(ThreadPoolTask* task) {
-		m_task_mutex.lock();
+        if(m_threads.size()<m_pool_size) {
+        	auto it = find_if(
+        			m_threads.begin(),
+        			m_threads.end(),
+					[](const ThreadWorker* tw) { return !tw->executing; }
+        	);
+
+        	if(it !=  m_threads.end()) {
+        		initialize_thread();
+        		cerr << "make threadx, num " << m_threads.size() << endl;
+        	}
+        }
 		m_tasks.push_back(task);
-		m_task_cond_var.signal(); // wake up one thread that is waiting for a task to be available
-		m_task_mutex.unlock();
-		return 0;
+		m_wait_cond.notify_one();
 	}
 
 private:
-	int m_pool_size;
-	Mutex m_task_mutex;
-	CondVar m_task_cond_var;
-	std::vector<ThreadWork> m_threads; // storage for threads
-	std::deque<ThreadPoolTask*> m_tasks;
+
+	size_t m_pool_size;
+	mutex m_lock;
+	condition_variable m_wait_cond;
+	vector<ThreadWorker*> m_threads; // storage for threads
+	deque<ThreadPoolTask*> m_tasks;
 
 };
 
-void* ThreadWork::execute_thread() {
+void* ThreadWorker::execute_thread(ThreadWorker* tw) {
 
-	ThreadPoolTask* task = NULL;
-	cout << "Starting thread " << self << endl;
+	try {
 
-	started=true;
-	stopped=false;
-	executing=false;
+		while(!pool->stopped&&running) {
 
-	while(started&&!stopped) {
+			// Try to pick a task
+			// If the thread was woken up to notify process shutdown, return from here
 
-		// Try to pick a task
-		cout << "Locking: " << pthread_self() << endl;
-		pool->wait();
+			if (pool->hasTasks()) {
 
-		// If the thread was woken up to notify process shutdown, return from here
-		if (pool->stopped) {
-			stopped=true;
-		} else if (!stopped) {
-			task = pool->popTask();
-			if(task!=nullptr) {
-				cout << "Executing thread " << pthread_self() << endl;
-				// execute the task
-				(*task)(); // could also do task->run(arg);
-				cout << "Done executing thread " << pthread_self() << endl;
-				delete task;
+				ThreadPoolTask* task = pool->popTask();
+				if(task!=nullptr) {
+					// execute the task
+					executing=true;
+					m_last_execute = now();
+					(*task)(); // could also do task->run(arg);
+					delete task;
+					m_last_execute = now();
+					executing=false;
+				}
+
+			} else {
+				// check for how long without running
+				if(pool->canStop() && (now() - m_last_execute > TREAD_LIVE)) {
+					running=false;
+				}
 			}
-		} else {
-			pool->unlock();
+
+			if (!pool->stopped&&running)
+				pool->wait_for(WAIT_TIME);
+
 		}
+		cerr << "thread end " << tw->self.get_id() << endl;
+
+	} catch(exception& ex) {
+		cerr << ex.what() << tw->self.get_id() << endl;
+		running=false;
+		executing=false;
 	}
-	stopped=true;
 	return NULL;
 }
-
-
-
-

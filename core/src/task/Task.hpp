@@ -18,8 +18,8 @@ protected:
 	atomic<long long>	startExcute;
 	atomic<long long>	nextExcute;
 
-	long long	lastMeasure=0;
-	int 		counter=0;
+	long long			lastMeasure=0;
+	int 				counter=0;
 
 	string		taskName;
 

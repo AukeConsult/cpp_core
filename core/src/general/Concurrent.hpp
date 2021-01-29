@@ -31,7 +31,7 @@ class ConcurrentHashMap
 public:
     
     size_t size() {
-        unique_lock<decltype(mut)> lock(mut);
+        unique_lock<mutex> lock(mut);
         return data.size();
     }
 
