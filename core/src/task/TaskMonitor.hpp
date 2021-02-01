@@ -6,8 +6,6 @@
 #include <chrono>
 #include <thread>
 
-#include <pthread.h>
-
 #include <condition_variable>
 #include "../general/Concurrent.hpp"
 #include "../general/System.hpp"

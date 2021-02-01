@@ -9,6 +9,4 @@
  *      Author: leif
  */
 
-#include "test_Task.hpp"
-#include "test_Task_Run.hpp"
-#include "test_ThreadPool.hpp"
+#include "test_TestMessages.hpp"
