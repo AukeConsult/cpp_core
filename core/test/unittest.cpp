@@ -13,8 +13,6 @@
 //#include "task/test.h"
 //#include "message/test.h"
 
-using namespace std;
-
 int main(int argc, char** argv) {
 	testing::InitGoogleTest(&argc, argv);
 	cout << "test" << endl;
