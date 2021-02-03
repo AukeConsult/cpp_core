@@ -9,7 +9,8 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-#include "general/test.h"
+//#include "general/test.h"
+#include "encryption/test.h"
 //#include "task/test.h"
 //#include "message/test.h"
 

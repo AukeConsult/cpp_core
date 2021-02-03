@@ -40,6 +40,5 @@ public:
     long sendTo(const char* msg, int msgsize, const char* name, int port);
     int getAddress(const char * name, char * addr);
     const char* getAddress(const char * name);
-
 };
 
