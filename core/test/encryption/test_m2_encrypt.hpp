@@ -15,14 +15,12 @@
 #include <algorithm>
 #include <random>
 #include "gtest/gtest.h"
-#include "../../src/encryption/M2Encryption.hpp"
 
 #include "../../src/general/Random.hpp"
-
-
+#include "../../src/encryption/M2Encryption.hpp"
 
 using namespace std;
-using namespace m2encryption;
+using namespace encryption;
 
 TEST(EncryptionTest, CipherBase) {
 
@@ -86,4 +84,84 @@ TEST(EncryptionTest, CipherBaseMany) {
 
 	}
 	cout << endl;
+}
+
+TEST(EncryptionTest, EncryptionFactory) {
+
+	EncryptFactory factory;
+	using Random = effolkronium::random_static;
+
+	cout << "start " << endl;
+
+	for(int i=1;i<100;i++) {
+
+		string in;
+		in.resize(Random::get(10000,100000), '0');
+
+		generate_n(in.begin(), in.length(), [] () -> char {return Random::get('0','Z');});
+
+		int outlen;
+		byte* ret_encr = factory.enCrypt((byte*)in.data(), in.length(), outlen);
+
+		int retlen;
+		byte* ret_decr = factory.deCrypt(ret_encr, outlen, retlen);
+
+		std::string out((char*)ret_decr);
+		//cout << "size" << " " << outlen << " " << retlen << endl;
+
+		ASSERT_EQ(in,out);
+
+		delete ret_encr;
+		delete ret_decr;
+
+	}
+	cout << endl;
+
+}
+
+TEST(EncryptionTest, EncryptionFactoryThread) {
+
+	EncryptFactory factory;
+	using Random = effolkronium::random_static;
+
+	cout << "start " << endl;
+
+	vector<thread> producers;
+	for (int x = 0; x < 100; x++) {
+		producers.push_back(thread([&]() {
+
+			for(int i=1;i<100;i++) {
+
+				string in;
+				in.resize(Random::get(10000,100000), '0');
+
+				generate_n(in.begin(), in.length(), [] () -> char {return Random::get('0','Z');});
+
+				int outlen;
+				byte* ret_encr = factory.enCrypt((byte*)in.data(), in.length(), outlen);
+
+				int retlen;
+				byte* ret_decr = factory.deCrypt(ret_encr, outlen, retlen);
+
+				std::string out((char*)ret_decr);
+
+				ASSERT_EQ(in,out);
+
+				delete ret_encr;
+				delete ret_decr;
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+			}
+
+
+		}));
+	}
+
+	for_each(producers.begin(), producers.end(), [](thread &thread) {
+		thread.join();
+	});
+
+	cout << endl;
+
 }

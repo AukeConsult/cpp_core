@@ -5,12 +5,9 @@
 #include <stdio.h>
 #include <string>
 
-
-
 using namespace std;
 
-
-namespace m2encryption {
+namespace encryption {
 
 	using byte = unsigned char;
 
@@ -126,8 +123,14 @@ namespace m2encryption {
 			delete encrypt_worker;
 		}
 		byte getMethod() {return _method;}
-		void setMethod(byte method) {
-			_method=method;
+		void setMethod(byte method) {_method=method;}
+
+		byte* enCrypt(byte * data, int length, int &out_length) {
+			return encrypt_worker->enCrypt(data, length, out_length);
+		}
+
+		byte* deCrypt(byte * buffer,int length, int &out_length) {
+			return decrypt_worker->deCrypt(buffer, length, out_length);
 		}
 
 	private:
@@ -139,13 +142,6 @@ namespace m2encryption {
 		CipherBase* decrypt_worker = new CipherBase();
 		CipherBase* encrypt_worker = new CipherBase();
 
-		byte* enCrypt(byte * data, int length, int &out_length) {
-			return encrypt_worker->enCrypt(data, length, out_length);
-		}
-
-		byte* deCrypt(byte * buffer,int length, int &out_length) {
-			return decrypt_worker->deCrypt(buffer, length, out_length);
-		}
 
 	};
 }

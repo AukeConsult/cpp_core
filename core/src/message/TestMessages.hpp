@@ -19,10 +19,11 @@ class Test1: public BaseMessage {
 
 public:
 
-	int 		field1=10;
-	int 		field2=132;
-	long long 	field3=200321;
-	string		field4 = "test message";
+	int 			field1=10;
+	int 			field2=132;
+	long long 		field3=200321;
+	string			field4 = "test message";
+	vector<byte> 	field5;
 
 	vector<byte> toVector() {
 		vector<byte> val = mergeDynamicBytes(
@@ -30,7 +31,8 @@ public:
 				to_bytes(field1),
 				to_bytes(field2),
 				to_bytes(field3),
-				to_bytes(field4)
+				to_bytes(field4),
+				field5
 			}
 		);
 		return val;
@@ -41,6 +43,7 @@ public:
 		field2 = getInt(val[1]);
 		field3 = getLong(val[2]);
 		field4 = getString(val[3]);
+		field5 = val[4];
 	}
 
 };

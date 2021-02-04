@@ -26,7 +26,7 @@ private:
 
 public:
 
-	pthread_t taskThread=0;
+	thread taskThread;
 	string monitorName;
 
 	long frequency = 1000; // 1 second default
@@ -47,9 +47,7 @@ public:
 			task->stop();
 		}
 		cv.notify_all();
-		pthread_join(taskThread, NULL);
 		cout << "TaskMonitor destroyed" << endl;
-		//pthread_exit (NULL);
 	}
 
 	void execute(Task* task) {
@@ -66,11 +64,12 @@ public:
 	void addExcute(Task* task) {
 		executelist.push(task);
 		if (!isRunning.exchange(true)) {
-			pthread_create(&taskThread, NULL, dorun, this);
+			thread x (dorun, this);
 			sinceStarted=System::currentTimeMillis();
 		}
 		cv.notify_all();
 	}
+
 	static void* dorun(void* This) {
 		((TaskMonitor*)This)->run();
 		return NULL;
