@@ -7,11 +7,16 @@
 #include <thread>
 
 #include <condition_variable>
+
 #include "../general/Concurrent.hpp"
 #include "../general/System.hpp"
-#include "Task.hpp"
+#include "../task/Task.hpp"
+
+
+namespace task {
 
 using namespace std;
+using namespace concurrent;
 
 class TaskMonitor {
 	
@@ -26,6 +31,12 @@ private:
 
 public:
 
+	TaskMonitor(int frequency, string monitorName)
+	: monitorName(monitorName),
+	  frequency(frequency),
+	  isRunning(false)
+	{}
+
 	thread taskThread;
 	string monitorName;
 
@@ -36,17 +47,13 @@ public:
 		return tasklist.values();
 	}
 
-	TaskMonitor(int frequency, string monitorName)
-	: monitorName(monitorName),
-	  frequency(frequency),
-	  isRunning(false)
-	{}
 
 	~TaskMonitor() {
 		for (shared_ptr<Task> task : tasklist.values()) {
 			task->stop();
 		}
 		cv.notify_all();
+		taskThread.join();
 		cout << "TaskMonitor destroyed" << endl;
 	}
 
@@ -64,15 +71,10 @@ public:
 	void addExcute(Task* task) {
 		executelist.push(task);
 		if (!isRunning.exchange(true)) {
-			thread x (dorun, this);
+			taskThread = thread ([this] { this->run();});
 			sinceStarted=System::currentTimeMillis();
 		}
 		cv.notify_all();
-	}
-
-	static void* dorun(void* This) {
-		((TaskMonitor*)This)->run();
-		return NULL;
 	}
 
 	void run() {
@@ -142,3 +144,6 @@ public:
 
 }
 ;
+
+}
+

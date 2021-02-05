@@ -9,10 +9,12 @@
 #pragma once
 
 #include <thread>
-#include <pthread.h>
+#include <memory>
 #include "gtest/gtest.h"
 #include "../../src/task/Task.hpp"
 #include "../../src/task/TaskMonitor.hpp"
+
+namespace task {
 
 class TaskTest: public Task {
 
@@ -28,7 +30,7 @@ public:
 	void onExecute() {
 		cnt++;
 		this_thread::sleep_for(10ms);
-		//cout << id << taskName << endl;
+		cout << id << taskName << endl;
 	};
 	void onStop() {
 		cout << "stop " << id << " " << taskName << " cnt " << cnt << endl;
@@ -41,8 +43,7 @@ TEST(TaskTest, initTask) {
 
 TEST(TaskTest, initmonitor) {
 
-	unique_ptr<TaskMonitor> pingMonitor(new TaskMonitor(100, "pingMonitor"));
-	cout << pingMonitor->monitorName << endl;
+	TaskMonitor* pingMonitor(new TaskMonitor(100, "pingMonitor"));
 
 	TaskTest* task1 = new TaskTest(1000,"task1");
 	TaskTest* task2 = new TaskTest(500,"task2");
@@ -56,11 +57,15 @@ TEST(TaskTest, initmonitor) {
 
 	this_thread::sleep_for(5s);
 
+	delete pingMonitor;
+
+	cout << pingMonitor->monitorName << " end" << endl;
+
 }
 
 TEST(TaskTest, startStopp) {
 
-	unique_ptr<TaskMonitor> pingMonitor(new TaskMonitor(100, "pingMonitor"));
+	shared_ptr<TaskMonitor> pingMonitor(new TaskMonitor(100, "pingMonitor"));
 	cout << pingMonitor->monitorName << endl;
 
 	TaskTest* task1 = new TaskTest(1000,"task1");
@@ -80,4 +85,9 @@ TEST(TaskTest, startStopp) {
 		task3->stop();
 	}
 
+	cout << pingMonitor->monitorName << " end" << endl;
+
 }
+
+}
+

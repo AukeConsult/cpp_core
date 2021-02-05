@@ -9,6 +9,8 @@
 #include "../general/Random.hpp"
 #include "../general/Concurrent.hpp"
 
+namespace task {
+
 class Task {
 
 protected:
@@ -148,3 +150,6 @@ public:
 	void onStop() override {};
 }
 ;
+
+}
+

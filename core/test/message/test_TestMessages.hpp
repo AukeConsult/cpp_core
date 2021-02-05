@@ -13,6 +13,8 @@
 #include "gtest/gtest.h"
 #include "../../src/message/TestMessages.hpp"
 
+namespace message {
+
 TEST(MessageTest, simpleMessage) {
 
 	string x="";
@@ -22,7 +24,7 @@ TEST(MessageTest, simpleMessage) {
 	Test1* m = new Test1();
 	m->field1=99;
 	m->field4="0123456789hei på deg 0123456789";
-	vector<byte> v = m->toVector();
+	vector<uint8_t> v = m->toVector();
 
 	cout << "size m " << sizeof(*m) << endl;
 	cout << "size v " << v.size() << endl;
@@ -47,20 +49,20 @@ TEST(MessageTest, checkBuffer) {
 	Test1* m = new Test1();
 	m->field1=99;
 	m->field4="0123456789hei på deg 0123456789";
-	vector<byte> v = m->toVector();
+	vector<uint8_t> v = m->toVector();
 	cout << "size m " << sizeof(*m) << endl;
 	cout << "size v " << v.size() << endl;
 
 	int len=0;
-	byte* b = m->toBytes(len);
+	uint8_t* b = m->toBytes(len);
 	for(int l=0; l < len; l++) {
 		printf("%02x ", *(b+l));
 	}
 	free(b);
 	cout << endl;
 
-	unique_ptr<byte> bt(m->toBytes(len));
-	byte* zz = (byte*)bt.get();
+	unique_ptr<uint8_t> bt(m->toBytes(len));
+	uint8_t* zz = (uint8_t*)bt.get();
 	for(int l=0; l < len; l++) {
 		printf("%02x ", *(zz+l));
 	}
@@ -75,13 +77,13 @@ TEST(MessageTest, bytebuffer) {
 	Test1* m = new Test1();
 	m->field1=99;
 	m->field4="0123456789hei på deg 0123456789";
-	vector<byte> v = m->toVector();
+	vector<uint8_t> v = m->toVector();
 	cout << "size m " << sizeof(*m) << endl;
 	cout << "size v " << v.size() << endl;
 
 	int len;
-	unique_ptr<byte> bt(m->toBytes(len));
-	byte* zz = (byte*)bt.get();
+	unique_ptr<uint8_t> bt(m->toBytes(len));
+	uint8_t* zz = (uint8_t*)bt.get();
 	for(int l=0; l < len; l++) {
 		printf("%02x ", *(zz+l));
 	}
@@ -95,6 +97,9 @@ TEST(MessageTest, bytebuffer) {
 	ASSERT_EQ(m->field3,m2.field3);
 	ASSERT_EQ(m->field4,m2.field4);
 
+
+
+}
 
 
 }

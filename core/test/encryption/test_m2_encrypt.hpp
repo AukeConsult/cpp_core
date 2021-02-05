@@ -27,31 +27,34 @@ TEST(EncryptionTest, CipherBase) {
 	CipherBase cipher;
 
 	string test = "0123456789012345678901234567890";
+
 	cout << "st  " << test.length() << endl;
-	byte* b = (byte*) test.data();
+	uint8_t* b = (uint8_t*) test.data();
 	for(unsigned int l=0; l < test.length(); l++) {
 		printf("%02x ", *(b+l));
 	}
 	cout << endl;
 
-	int outlen;
-	byte* ret_encr = cipher.enCrypt((byte*)test.data(), test.length(), outlen);
-	for(int l=0; l < outlen; l++) {
-		printf("%02x ", *(ret_encr+l));
-	}
-	cout << endl << "end e " << outlen << endl;
+	vector<uint8_t>* data = new vector<uint8_t>(test.begin(),test.end());
+	cout << data->size() << endl;
 
-	int retlen;
-	byte* ret_decr = cipher.deCrypt(ret_encr, outlen, retlen);
-	for(int l=0; l < retlen; l++) {
-		printf("%02x ", *(ret_decr+l));
+	vector<uint8_t>* ret_encr = cipher.enCrypt(data);
+	for(int l=0; l < (int)ret_encr->size(); l++) {
+		printf("%02x ", (*ret_encr)[l]);
 	}
-	cout << endl << "end d " << retlen << endl;
+	cout << endl << "end e " << ret_encr->size() << endl;
+
+	vector<uint8_t>* ret_decr = cipher.deCrypt(ret_encr);
+	for(int l=0; l < (int)ret_decr->size(); l++) {
+		printf("%02x ", (*ret_decr)[l]);
+	}
+	cout << endl << "end d " << ret_decr->size() << endl;
 
 	delete ret_encr;
 	delete ret_decr;
 
 }
+
 
 TEST(EncryptionTest, CipherBaseMany) {
 
@@ -67,15 +70,12 @@ TEST(EncryptionTest, CipherBaseMany) {
 		generate_n(in.begin(), in.length(), [] () -> char {return Random::get('a','z');});
 		cout << in << endl;
 
-		int outlen;
-		byte* ret_encr = cipher.enCrypt((byte*)in.data(), in.length(), outlen);
+		vector<uint8_t>* data = new vector<uint8_t>(in.begin(),in.end());
+		vector<uint8_t>* ret_encr = cipher.enCrypt(data);
+		vector<uint8_t>* ret_decr = cipher.deCrypt(ret_encr);
+		std::string out(ret_decr->begin(), ret_decr->end());
 
-		int retlen;
-		byte* ret_decr = cipher.deCrypt(ret_encr, outlen, retlen);
-
-		std::string out((char*)ret_decr);
 		cout << out << endl;
-		cout << "end d " << retlen << endl;
 
 		ASSERT_EQ(in,out);
 
@@ -99,16 +99,10 @@ TEST(EncryptionTest, EncryptionFactory) {
 		in.resize(Random::get(10000,100000), '0');
 
 		generate_n(in.begin(), in.length(), [] () -> char {return Random::get('0','Z');});
-
-		int outlen;
-		byte* ret_encr = factory.enCrypt((byte*)in.data(), in.length(), outlen);
-
-		int retlen;
-		byte* ret_decr = factory.deCrypt(ret_encr, outlen, retlen);
-
-		std::string out((char*)ret_decr);
-		//cout << "size" << " " << outlen << " " << retlen << endl;
-
+		vector<uint8_t>* data = new vector<uint8_t>(in.begin(),in.end());
+		vector<uint8_t>* ret_encr = factory.enCrypt(data);
+		vector<uint8_t>* ret_decr = factory.deCrypt(ret_encr);
+		std::string out(ret_decr->begin(), ret_decr->end());
 		ASSERT_EQ(in,out);
 
 		delete ret_encr;
@@ -136,14 +130,10 @@ TEST(EncryptionTest, EncryptionFactoryThread) {
 				in.resize(Random::get(10000,100000), '0');
 
 				generate_n(in.begin(), in.length(), [] () -> char {return Random::get('0','Z');});
-
-				int outlen;
-				byte* ret_encr = factory.enCrypt((byte*)in.data(), in.length(), outlen);
-
-				int retlen;
-				byte* ret_decr = factory.deCrypt(ret_encr, outlen, retlen);
-
-				std::string out((char*)ret_decr);
+				vector<uint8_t>* data = new vector<uint8_t>(in.begin(),in.end());
+				vector<uint8_t>* ret_encr = factory.enCrypt(data);
+				vector<uint8_t>* ret_decr = factory.deCrypt(ret_encr);
+				std::string out(ret_decr->begin(), ret_decr->end());
 
 				ASSERT_EQ(in,out);
 

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <algorithm>
 #include <mutex>
 #include <condition_variable>
@@ -8,6 +9,8 @@
 #include <unordered_map>
 
 using namespace std;
+
+namespace concurrent {
 
 class ConcurrentException : public exception {
 	string message;
@@ -26,6 +29,7 @@ private:
     mutex _mutex;
     unordered_map<K, T> _map;
 public:
+
     inline size_t size() {
         unique_lock<mutex> lock(_mutex);
         return _map.size();
@@ -139,8 +143,8 @@ public:
         return _queue.empty();
     }
 
-    inline size_t size() const {
-        //unique_lock<mutex> lock(_mutex);
+    inline size_t size() {
+        unique_lock<mutex> lock(_mutex);
         return _queue.size();
     }
 
@@ -190,3 +194,4 @@ public:
     }
 
 };
+}

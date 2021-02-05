@@ -1,22 +1,21 @@
 #pragma once
 
+
 #ifdef __WIN32__
 	#include <winsock2.h>
 #else
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
-//#include <unistd.h>
-//#include <netdb.h>
-//#include <string.h>
-//#define TRUE 1
-//#define FALSE 0
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <unistd.h>
+	#include <netdb.h>
+	#include <string.h>
+	#define TRUE 1
+	#define FALSE 0
 #endif
 
-
-
-
+namespace udpcom {
 //Simple socket class for datagrams.  Platform independent between
 //unix and Windows.
 class DatagramSocket {
@@ -40,5 +39,8 @@ public:
     long sendTo(const char* msg, int msgsize, const char* name, int port);
     int getAddress(const char * name, char * addr);
     const char* getAddress(const char * name);
+    void close();
 };
+
+}
 

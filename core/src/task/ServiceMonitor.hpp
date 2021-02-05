@@ -3,6 +3,8 @@
 #include <string>
 #include "TaskMonitor.hpp"
 
+namespace task {
+
 class ServiceMonitor {
 
 	string name;
@@ -25,3 +27,5 @@ public:
 	}
 
 };
+
+}

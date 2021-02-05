@@ -13,6 +13,9 @@
  *      Author: leif
  */
 
+
+namespace concurrent {
+
 class Dummy {
 public:
 	Dummy(int f1, int f2, string x) : f1(f1), f2(f2), x(x) {}
@@ -89,7 +92,7 @@ TEST(BlockingQueueTest, concurrentTest) {
 	std::vector<std::thread> consumers;
 	for (int i = 0; i < 100; i++) {
 		producers.push_back(std::thread([&cnt_recived, &queue, i]() {
-			int res = queue.take();
+			queue.take();
 			//cout << "res " << res << endl;
 			cnt_recived++;
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
@@ -150,6 +153,9 @@ TEST(BlockingQueueTest, concurrentObjectTest) {
 	ASSERT_EQ(cnt_sent,cnt_recived);
 
 }
+
+}
+
 
 
 

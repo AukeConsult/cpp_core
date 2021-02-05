@@ -10,12 +10,12 @@
 #include <iostream>
 #include <string>
 #include <thread>
-
 #include "gtest/gtest.h"
 #include "../../src/general/DatagramSocket.h"
 
 using namespace std;
 
+namespace udpcom {
 
 TEST(DatagramTest, initDatagram) {
 
@@ -24,10 +24,12 @@ TEST(DatagramTest, initDatagram) {
 		char msg[4000];
 		char address[30];
 		int port;
-		while(1) {
-			int len = r->receive(msg, 4000, address, port);
-			cout << msg << " len: " << len << " addr: " << address << ":" << port << endl;
+		int retlen=0;
+		while(retlen>-1) {
+			retlen = r->receive(msg, 4000, address, port);
+			cout << msg << " len: " << retlen << " addr: " << address << ":" << port << endl;
 		}
+		cout << "end socket send " << WSAGetLastError() << endl;
 
 	});
 
@@ -42,5 +44,8 @@ TEST(DatagramTest, initDatagram) {
 	        printf("The error is %d", WSAGetLastError());
 	    }
 	}
-	//t.join();
+	r->close();
+	t.join();
+}
+
 }

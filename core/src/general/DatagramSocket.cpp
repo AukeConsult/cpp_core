@@ -1,7 +1,9 @@
 #include "DatagramSocket.h"
 
+namespace udpcom {
+
 #ifdef __WIN32__
-typedef int socklen_t;
+	typedef int socklen_t;
 #endif
 
 DatagramSocket::DatagramSocket(int port, bool broadcast, bool reusesock) {
@@ -49,15 +51,7 @@ DatagramSocket::DatagramSocket(int port, bool broadcast, bool reusesock) {
     retval = bind(sock,(struct sockaddr *)&addr,sizeof(addr));
 }
 
-
-DatagramSocket::~DatagramSocket() {
-#if __WIN32__
-    closesocket(sock);
-    WSACleanup();
-#else
-    close(sock);
-#endif
-}
+DatagramSocket::~DatagramSocket() {close();}
 
 int DatagramSocket::getAddress(const char * name, char * addr) {
     struct hostent *hp;
@@ -77,8 +71,10 @@ long DatagramSocket::receive(char* msg, int msgsize, char *address, int &port) {
     struct sockaddr_in sender;
     socklen_t sendersize = sizeof(sender);
     int retval = recvfrom(sock,msg,msgsize,0, (struct sockaddr *)&sender, &sendersize);
-    strcpy(address,inet_ntoa(sender.sin_addr));
-    port = ntohs(sender.sin_port);
+    if(retval>-1) {
+        strcpy(address,inet_ntoa(sender.sin_addr));
+        port = ntohs(sender.sin_port);
+    }
     return retval;
 }
 
@@ -86,4 +82,15 @@ long DatagramSocket::sendTo(const char* msg, int msgsize, const char* addr, int 
     outaddr.sin_addr.s_addr = inet_addr(addr);
     outaddr.sin_port = htons(port);
     return sendto(sock, msg, msgsize, 0, (struct sockaddr *)&outaddr,sizeof(outaddr));
+}
+
+void DatagramSocket::close() {
+#if __WIN32__
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+}
+
 }

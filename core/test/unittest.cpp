@@ -9,13 +9,13 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
-//#include "general/test.h"
 #include "encryption/test.h"
-//#include "task/test.h"
-//#include "message/test.h"
+#include "general/test.h"
+#include "task/test.h"
+#include "message/test.h"
 
 int main(int argc, char** argv) {
 	testing::InitGoogleTest(&argc, argv);
-	cout << "test" << endl;
+	std::cout << "test" << std::endl;
 	return RUN_ALL_TESTS();
 }

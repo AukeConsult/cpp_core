@@ -16,6 +16,8 @@
 
 using namespace std;
 
+namespace task {
+
 const int MAX_TASKS = 8;
 
 void hello(void* arg) {
@@ -48,6 +50,8 @@ TEST(ThreadpoolTest, initPool) {
 
 	  cout << "Exiting test..." << endl;
 
+
+}
 
 }
 

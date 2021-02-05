@@ -18,6 +18,8 @@ const int WAIT_TIME=1000;
 using namespace std;
 using namespace std::chrono;
 
+namespace task {
+
 class ThreadPool;
 
 class ThreadPoolTask {
@@ -60,11 +62,11 @@ private:
 };
 
 
-extern "C" void* start_thread(void* This){
-	ThreadWorker* tw = (ThreadWorker*) This;
-	tw->execute_thread(tw);
-	return NULL;
-}
+//extern "C" void* start_thread(void* This){
+//	ThreadWorker* tw = (ThreadWorker*) This;
+//	tw->execute_thread(tw);
+//	return NULL;
+//}
 
 class ThreadPool {
 public:
@@ -95,7 +97,8 @@ public:
 			m_threads.push_back(worker);
 
 			worker->pool=this;
-			worker->self = thread(start_thread, worker);
+			worker->self = thread ([worker] { worker->execute_thread(worker);});
+			//worker->self = thread(start_thread, worker);
 			//cout << "Thread started" << worker->self.get_id() << endl;
 
 		} catch (exception& ex) {
@@ -226,3 +229,6 @@ void* ThreadWorker::execute_thread(ThreadWorker* tw) {
 	}
 	return NULL;
 }
+
+}
+

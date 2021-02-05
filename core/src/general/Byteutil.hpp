@@ -10,49 +10,47 @@ using namespace std;
 
 namespace byteutil {
 
-	using byte = unsigned char;
-
-	inline vector<byte> to_bytes( const string & str ) {
-		vector<byte> bytes;
-		const byte* begin = reinterpret_cast< const byte* >(str.data());
+	inline vector<uint8_t> to_bytes( const string & str ) {
+		vector<uint8_t> bytes;
+		const uint8_t* begin = reinterpret_cast< const uint8_t* >(str.data());
 		bytes.resize(str.length());
 		memcpy(&bytes[0],begin,str.length());
 		return bytes ;
 	}
 
-	template< typename T >vector<byte>
+	template< typename T >vector<uint8_t>
 	inline to_bytes( const T& object ) {
-		vector<byte> bytes ;
-		const byte* begin = reinterpret_cast< const byte* >( std::addressof(object) ) ;
+		vector<uint8_t> bytes ;
+		const uint8_t* begin = reinterpret_cast< const uint8_t* >( std::addressof(object) ) ;
 		bytes.resize(sizeof(T));
 		memcpy(&bytes[0],begin,sizeof(T));
 		return bytes ;
 	}
 
 	template< typename T >
-	inline void from_bytes(const vector<byte>& bytes, const T& val) {
-		memcpy((byte*)&val,&bytes[0],sizeof(T));
+	inline void from_bytes(const vector<uint8_t>& bytes, const T& val) {
+		memcpy((uint8_t*)&val,&bytes[0],sizeof(T));
 	}
-	inline short getShort(const vector<byte>& bytes) {
+	inline short getShort(const vector<uint8_t>& bytes) {
 		short val;
 		int len = bytes.size()<2?bytes.size():2;
 		memcpy((void*)&val,&bytes[0],len);
 		return val;
 	}
-	inline int getInt(const vector<byte>& bytes) {
+	inline int getInt(const vector<uint8_t>& bytes) {
 		int val;
 		int len = bytes.size()<4?bytes.size():4;
 		memcpy((void*)&val,&bytes[0],len);
 		return val;
 	}
-	inline long long getLong(const vector<byte>& bytes) {
+	inline long long getLong(const vector<uint8_t>& bytes) {
 		unsigned long val=0L;
 		int len = bytes.size()<8?bytes.size():8;
 		memcpy((void*)&val,&bytes[0],len);
 		return val;
 	}
 
-	inline string getString(const vector<byte>& bytes) {
+	inline string getString(const vector<uint8_t>& bytes) {
 		string val;
 		int len = bytes.size();
 		val.resize(len);
@@ -60,40 +58,40 @@ namespace byteutil {
 		return val;
 	}
 
-	inline vector<byte> mergeBytes( initializer_list<vector<byte>> list )  {
-		vector<byte> v;
-		for( vector<byte> vin : list ) {
+	inline vector<uint8_t> mergeBytes( initializer_list<vector<uint8_t>> list )  {
+		vector<uint8_t> v;
+		for( vector<uint8_t> vin : list ) {
 			v.insert(v.end(),vin.begin(),vin.end());
 		}
 		return v;
 	}
 
-	inline vector<vector<byte>> splitBytes( vector<byte> val, int len )  {
-		vector<vector<byte>> v;
+	inline vector<vector<uint8_t>> splitBytes( vector<uint8_t> val, int len )  {
+		vector<vector<uint8_t>> v;
 		for(size_t i=0;i<val.size();i+=len) {
-			vector<byte> sub;
+			vector<uint8_t> sub;
 			sub.insert(sub.end(),val.begin() + i,val.begin() + i + len);
 			v.push_back(sub);
 		}
 		return v;
 	}
 
-	inline vector<byte> mergeDynamicBytes( initializer_list<vector<byte>> list )  {
-		vector<byte> v;
-		for( vector<byte> vin : list ) {
+	inline vector<uint8_t> mergeDynamicBytes( initializer_list<vector<uint8_t>> list )  {
+		vector<uint8_t> v;
+		for( vector<uint8_t> vin : list ) {
 			int len = vin.size();
-			v.push_back((byte)len & 0xff);
-			v.push_back((byte)(len >> 8) & 0xff);
-			v.push_back((byte)(len >> 16) & 0xff);
-			v.push_back((byte)(len >> 24) & 0xff);
+			v.push_back((uint8_t)len & 0xff);
+			v.push_back((uint8_t)(len >> 8) & 0xff);
+			v.push_back((uint8_t)(len >> 16) & 0xff);
+			v.push_back((uint8_t)(len >> 24) & 0xff);
 			v.insert(v.end(),vin.begin(),vin.end());
 		}
 		return v;
 	}
 
-	inline vector<vector<byte>> splitDynamicBytes( vector<byte> val )  {
+	inline vector<vector<uint8_t>> splitDynamicBytes( vector<uint8_t> val )  {
 
-		vector<vector<byte>> v;
+		vector<vector<uint8_t>> v;
 
 		size_t pos=0;
 		while(pos < val.size()) {
@@ -103,7 +101,7 @@ namespace byteutil {
 	        len = len + ((val[pos++] & 0xff) << 16);
 	        len = len + ((val[pos++] & 0xff) << 24);
 
-	        vector<byte> sub;
+	        vector<uint8_t> sub;
 			sub.insert(sub.end(),val.begin() + pos,val.begin() + pos + len);
 			v.push_back(sub);
 			pos += len;

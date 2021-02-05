@@ -9,58 +9,55 @@ using namespace std;
 
 namespace encryption {
 
-	using byte = unsigned char;
+	const uint8_t ENCRYPT_NONE = 255; 			// No encryption
+	const uint8_t ENCRYPT_EX = 253; 				// Original m2 encryption,
 
-	const byte ENCRYPT_NONE = 255; 			// No encryption
-	const byte ENCRYPT_EX = 253; 				// Original m2 encryption,
-
-	const byte ENCRYPT_DES = 251; 			// DES is not implemented
-	const byte ENCRYPT_AES = 250; 			// AES encryption, 2
-	const byte ENCRYPT_INVERSE = 249; 		// simply invert bytes with value
+	const uint8_t ENCRYPT_DES = 251; 			// DES is not implemented
+	const uint8_t ENCRYPT_AES = 250; 			// AES encryption, 2
+	const uint8_t ENCRYPT_INVERSE = 249; 		// simply invert bytes with value
 
 	class CipherBase {
 	public:
 
-		byte* enCrypt(byte * data, int length, int &out_length)  {
+		vector<uint8_t>* enCrypt(vector<uint8_t>* data)  {
 
-			byte headerdata[6] = { FIXED_MARKER, FORCE_INITIALIZE,ENCRYPT_EX,0,ENCRYPT_VALIDATOR1, ENCRYPT_VALIDATOR2};
-			byte* outdata = (byte*)calloc(length+6, sizeof(char));
+			uint8_t headerdata[6] = { FIXED_MARKER, FORCE_INITIALIZE,ENCRYPT_EX,0,ENCRYPT_VALIDATOR1, ENCRYPT_VALIDATOR2};
+			vector<uint8_t>* outdata = new vector<uint8_t>();
 
-			memcpy ((void*)outdata,(void*)headerdata,6);
-			memcpy ((void*)(outdata+6),(void*)data,length);
-			enCryptSimple(outdata, length + 6);
-			out_length = length+6;
+			std::copy(&headerdata[0], &headerdata[6], back_inserter((*outdata)));
+			std::copy(data->begin(), data->end(), back_inserter((*outdata)));
+
+			enCryptSimple(outdata);
 			return outdata;
 
 		}
-		byte* deCrypt(byte * data, int length, int &out_length)  {
-
-			byte* outdata = (byte*)calloc(length, sizeof(char));
-			deCryptSimple(data,length);
-			if(data[4]==ENCRYPT_VALIDATOR1 && data[5]==ENCRYPT_VALIDATOR2) {
-				memcpy ((void*)(outdata),(void*)(data+6),length-6);
-				out_length = length-6;
+		vector<uint8_t>* deCrypt(vector<uint8_t> * data)  {
+			vector<uint8_t> * outdata = new vector<uint8_t>();
+			deCryptSimple(data);
+			if((*data)[4]==ENCRYPT_VALIDATOR1
+					&& (*data)[5]==ENCRYPT_VALIDATOR2)
+			{
+				std::copy(data->begin()+6, data->end(), back_inserter((*outdata)));
 				return outdata;
 			}
-			out_length=0;
-			return new byte(0);
+			return new vector<uint8_t>();
 
 		}
 
 	private:
 
-		const byte FIXED_MARKER = (byte) 255;
-		const byte FORCE_INITIALIZE = (byte) 255;
-		const byte NO_FORCE_INITIALIZE = 0;
-		const byte ENCRYPT_VALIDATOR1 = (byte) 255;
-		const byte ENCRYPT_VALIDATOR2 = (byte) 255;
-		const byte IS_KEY_DELIVERY = (byte) 255;
+		const uint8_t FIXED_MARKER = (uint8_t) 255;
+		const uint8_t FORCE_INITIALIZE = (uint8_t) 255;
+		const uint8_t NO_FORCE_INITIALIZE = 0;
+		const uint8_t ENCRYPT_VALIDATOR1 = (uint8_t) 255;
+		const uint8_t ENCRYPT_VALIDATOR2 = (uint8_t) 255;
+		const uint8_t IS_KEY_DELIVERY = (uint8_t) 255;
 
 		// protocol format
 		// data always start with 4 bytes
 		// byte 0 = 255
 		// byte 1 = 255 or 0
-		// byte 2 = method
+		// uint8_t 2 = method
 		// byte 3 = length for key information record
 		// Key information record
 
@@ -78,15 +75,17 @@ namespace encryption {
 		};
 
 
-		void enCryptSimple(byte* data, int length) {
-			if (data[2] != ENCRYPT_NONE && length>6) {
-				short keynum = ((short)data[7]/26) + 1;
-				data[3] += (byte) keynum;
-				for (int i = 4, z = 10, s = 0; i < length; i++, z++) {
-					short x = data[i];
+		void enCryptSimple(vector<uint8_t>* data) {
+			if ((*data)[2] != ENCRYPT_NONE
+					&& (int)data->size()>6)
+			{
+				short keynum = ((short)(*data)[7]/26) + 1;
+				(*data)[3] += (uint8_t) keynum;
+				for (int i = 4, z = 10, s = 0; i < (int)data->size(); i++, z++) {
+					short x = (*data)[i];
 					x += fixedKey[keynum][z];
 					if (x > 255) {x -= 256;}
-					data[i] = (byte) x;
+					(*data)[i] = (uint8_t) x;
 					if (z > 31) {
 						z = s;s++;
 						if (s > 30) {s = 0;}
@@ -95,14 +94,14 @@ namespace encryption {
 			}
 		};
 
-		void deCryptSimple(byte* data, int length) {
-			if (data[2] != ENCRYPT_NONE&& length>6) {
-				short keynum = (short) (data[3] & 0x0F);
-				for (int i = 4, z = 10, s = 0; i < length; i++, z++) {
-					short x = data[i];
+		void deCryptSimple(vector<uint8_t>* data) {
+			if ((*data)[2] != ENCRYPT_NONE&& data->size()>6) {
+				short keynum = (short) ((*data)[3] & 0x0F);
+				for (int i = 4, z = 10, s = 0; i < (int)data->size(); i++, z++) {
+					short x = (uint8_t)(*data)[i];
 					x -= fixedKey[keynum][z];
 					if (x < 0) {x += 256;}
-					data[i] = (byte) x;
+					(*data)[i] = (uint8_t) x;
 					if (z > 31) {
 						z = s;s++;
 						if (s > 30) {s = 0;}
@@ -117,25 +116,23 @@ namespace encryption {
 	public:
 
 		EncryptFactory() : _method(ENCRYPT_EX) {}
-		EncryptFactory(byte method) : _method(method) {}
+		EncryptFactory(uint8_t method) : _method(method) {}
 		~EncryptFactory() {
 			delete decrypt_worker;
 			delete encrypt_worker;
 		}
-		byte getMethod() {return _method;}
-		void setMethod(byte method) {_method=method;}
-
-		byte* enCrypt(byte * data, int length, int &out_length) {
-			return encrypt_worker->enCrypt(data, length, out_length);
+		uint8_t getMethod() {return _method;}
+		void setMethod(uint8_t method) {_method=method;}
+		vector<uint8_t>* enCrypt(vector<uint8_t> * data) {
+			return encrypt_worker->enCrypt(data);
 		}
-
-		byte* deCrypt(byte * buffer,int length, int &out_length) {
-			return decrypt_worker->deCrypt(buffer, length, out_length);
+		vector<uint8_t>* deCrypt(vector<uint8_t> * buffer) {
+			return decrypt_worker->deCrypt(buffer);
 		}
 
 	private:
 
-		byte _method;
+		uint8_t _method;
 
 		// LHA:
 		// set encrypt and decrypt worker is only for test
@@ -144,5 +141,6 @@ namespace encryption {
 
 
 	};
+
 }
 
